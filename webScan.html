@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Scanner to Sheets</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+    <div id="reader" style="width: 500px"></div>
+    <p id="status"></p>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwLSGFJzcOM3izZ7-kw_JsEM6vvhceVQu_BG_-cBSWunWZFgkmbfxshj4Mv7IvATBc_SQ/exec';
+
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById('status').innerText = "Mengirim data...";
+            
+            // Berhenti scan sementara agar tidak double input
+            html5QrcodeScanner.clear();
+
+            // Kirim data ke Google Sheets
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors', // Penting untuk Apps Script
+                cache: 'no-cache',
+                body: JSON.stringify({ qr_result: decodedText, location: "Web Scanner" })
+            })
+            .then(() => {
+                alert("Data Berhasil Dikirim: " + decodedText);
+                location.reload(); // Refresh untuk scan lagi
+            })
+            .catch(error => console.error('Error!', error.message));
+        }
+
+        var html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+</html>
