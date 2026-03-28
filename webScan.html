@@ -9,26 +9,34 @@
     <p id="status"></p>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxnFE87sqlmekru5xb8XfR1KfcKSJg2h9nH8dZ6tQmxQ10KjrdhuPHteQ6bAVRsIlto5g/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbz-eG76sCoXmNSMJobmcvrgzhGWdVVsJnhlhVruAxo0qLGDSkbex6h7WmxxZFvNG5wbQg/exec';
 
         function onScanSuccess(decodedText, decodedResult) {
-            document.getElementById('status').innerText = "Mengirim data...";
-            
-            // Berhenti scan sementara agar tidak double input
+            // 1. Berhenti scan agar tidak mengirim berkali-kali
             html5QrcodeScanner.clear();
-
-            // Kirim data ke Google Sheets
-            fetch(scriptURL, {
+            
+            // 2. Tampilkan status di layar
+            document.getElementById('status').innerText = "Sedang mengirim: " + decodedText;
+        
+            // 3. Siapkan data
+            const params = new URLSearchParams();
+            params.append('qr_result', decodedText);
+            params.append('location', 'Scanner Web');
+        
+            // 4. Kirim menggunakan POST dengan parameter di URL
+            fetch(`${scriptURL}?${params.toString()}`, {
                 method: 'POST',
-                mode: 'no-cors', // Penting untuk Apps Script
-                cache: 'no-cache',
-                body: JSON.stringify({ qr_result: decodedText, location: "Web Scanner" })
+                mode: 'no-cors'
             })
             .then(() => {
-                alert("Data Berhasil Dikirim: " + decodedText);
-                location.reload(); // Refresh untuk scan lagi
+                alert("Data Berhasil Dicatat: " + decodedText);
+                // Refresh halaman agar bisa scan lagi
+                window.location.reload();
             })
-            .catch(error => console.error('Error!', error.message));
+            .catch(error => {
+                alert("Gagal: " + error);
+                console.error(error);
+            });
         }
 
         var html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
