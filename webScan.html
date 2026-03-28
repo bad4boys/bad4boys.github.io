@@ -12,23 +12,32 @@
         const scriptURL = 'https://script.google.com/macros/s/AKfycbzFeCgI7ACaZG4xPmYTFITIZGZXSJ2AHVl8svyfn9aL6q7M7y7i-i9XmP9c4LlZtRhWrQ/exec';
 
         function onScanSuccess(decodedText, decodedResult) {
-            document.getElementById('status').innerText = "Mengirim data...";
+            document.getElementById('status').innerText = "Mengirim data: " + decodedText;
             
-            // Berhenti scan sementara agar tidak double input
+            // Berhenti scan agar tidak duplikat
             html5QrcodeScanner.clear();
-
-            // Kirim data ke Google Sheets
+        
+            // Gunakan URLSearchParams agar data terkirim sebagai form-data
+            const formData = new URLSearchParams();
+            formData.append('qr_result', decodedText);
+            formData.append('location', 'Web Scanner');
+        
             fetch(scriptURL, {
                 method: 'POST',
-                mode: 'no-cors', // Penting untuk Apps Script
-                cache: 'no-cache',
-                body: JSON.stringify({ qr_result: decodedText, location: "Web Scanner" })
+                mode: 'no-cors', // Tetap gunakan no-cors
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
             })
             .then(() => {
-                alert("Data Berhasil Dikirim: " + decodedText);
-                location.reload(); // Refresh untuk scan lagi
+                alert("Data Berhasil Terkirim: " + decodedText);
+                location.reload(); 
             })
-            .catch(error => console.error('Error!', error.message));
+            .catch(error => {
+                alert("Gagal mengirim: " + error);
+                console.error('Error!', error);
+            });
         }
 
         var html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
